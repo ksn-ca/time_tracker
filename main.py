@@ -10,7 +10,10 @@ from pixella import PIXELLA_HEADER, PIXELLA_GRAPH_URLS
 from_zone = tz.gettz("UTC")
 to_zone = tz.gettz("America/Montreal")
 YESTERDAY = datetime.now().date() - timedelta(days=1)
+SINCE = datetime.strptime('20231206', '%Y%m%d').date()
+TEST_DAY = datetime.strptime('20231206', '%Y%m%d').date()
 
+print(SINCE)
 
 def get_toggl_entries(date):
     date_to = date + timedelta(days=1)
@@ -70,9 +73,18 @@ def individual_pixella_post(project, date, duration_min):
 
 
 
+def post_to_pixella_since(since):
+    projects_dict = get_toggl_projects()
+    toggl_entries = get_toggl_entries(YESTERDAY)
+    duration_dict = get_duration_per_project(toggl_entries, projects_dict)
+    post_to_pixella(duration_dict)
+    print('SUCCESS')
 
+def post_to_pixella_yesterday(day):
+    projects_dict = get_toggl_projects()
+    toggl_entries = get_toggl_entries(day)
+    duration_dict = get_duration_per_project(toggl_entries, projects_dict)
+    post_to_pixella(duration_dict)
+    print('SUCCESS')
 
-projects_dict = get_toggl_projects()
-toggl_entries = get_toggl_entries(YESTERDAY)
-duration_dict = get_duration_per_project(toggl_entries, projects_dict)
-post_to_pixella(duration_dict)
+post_to_pixella_yesterday(TEST_DAY)

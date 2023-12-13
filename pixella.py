@@ -35,7 +35,7 @@ def get_pixella_graphs():
     response = requests.get(PIXELLA_GRAPH_API, headers=PIXELLA_HEADER)
     if "message" in response.json():
         print("RETRYING")
-        get_pixella_graphs()
+        return get_pixella_graphs()
     else:
         pixella_graph_dict = {
             graph["name"]: graph["id"] for graph in response.json()["graphs"]
