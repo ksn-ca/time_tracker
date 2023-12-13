@@ -70,15 +70,27 @@ def individual_pixella_post(project, date, duration_min):
             individual_pixella_post(project, date, duration_min)
         else: print(response.text)
 
+def create_date_range(start_date, end_date):
+    delta = timedelta(days=1)
 
+    # Create an array of date objects
+    date_array = []
+    current_date = start_date
+    while current_date <  end_date:
+        date_array.append(current_date)
+        current_date += delta
+
+    return date_array
 
 
 def post_to_pixella_since(since):
+    date_array = create_date_range(since, YESTERDAY)
     projects_dict = get_toggl_projects()
-    toggl_entries = get_toggl_entries(YESTERDAY)
-    duration_dict = get_duration_per_project(toggl_entries, projects_dict)
-    post_to_pixella(duration_dict)
-    print('SUCCESS')
+    for date in date_array:
+        toggl_entries = get_toggl_entries(date)
+        duration_dict = get_duration_per_project(toggl_entries, projects_dict)
+        post_to_pixella(duration_dict)
+        print('SUCCESS', date)
 
 def post_to_pixella_yesterday(day):
     projects_dict = get_toggl_projects()
@@ -87,4 +99,5 @@ def post_to_pixella_yesterday(day):
     post_to_pixella(duration_dict)
     print('SUCCESS')
 
-post_to_pixella_yesterday(TEST_DAY)
+# post_to_pixella_yesterday(TEST_DAY)
+post_to_pixella_since(SINCE)
