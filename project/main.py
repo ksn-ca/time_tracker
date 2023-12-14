@@ -13,8 +13,6 @@ YESTERDAY = datetime.now().date() - timedelta(days=1)
 SINCE = datetime.strptime('20231206', '%Y%m%d').date()
 TEST_DAY = datetime.strptime('20231206', '%Y%m%d').date()
 
-print(SINCE)
-
 def get_toggl_entries(date):
     date_to = date + timedelta(days=1)
     time_entry_params = {"start_date": str(date), "end_date": str(date_to)}
