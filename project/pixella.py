@@ -1,12 +1,29 @@
 import requests
 from decouple import config
 
+from datetime import datetime, timedelta
+from toggl import get_toggl_entries, get_toggl_projects, get_duration_per_project
+
 # PIXELLA GRAPH
 PIXELLA_API = "https://pixe.la/v1/users"
 PIXELLA_TOKEN = config("PIXELLA_TOKEN")
 PIXELLA_USERNAME = config("PIXELLA_USERNAME")
 PIXELLA_GRAPH_API = f"{PIXELLA_API}/{PIXELLA_USERNAME}/graphs"
 PIXELLA_HEADER = {"X-USER-TOKEN": PIXELLA_TOKEN}
+
+YESTERDAY = datetime.now().date() - timedelta(days=1)
+
+def create_date_range(start_date, end_date):
+    delta = timedelta(days=1)
+
+    # Create an array of date objects
+    date_array = []
+    current_date = start_date
+    while current_date < end_date:
+        date_array.append(current_date)
+        current_date += delta
+
+    return date_array
 
 
 def create_new_graph(
@@ -53,3 +70,43 @@ def create_pixella_urls():
 
 
 PIXELLA_GRAPH_URLS = create_pixella_urls()
+
+
+def individual_pixella_post(project, date, duration_min):
+    if project in PIXELLA_GRAPH_URLS:
+        post_params = {"date": date, "quantity": str(duration_min)}
+        response = requests.post(
+            PIXELLA_GRAPH_URLS[project], json=post_params, headers=PIXELLA_HEADER
+        )
+        if response.json()["isSuccess"] == False:
+            print("RETRYING")
+            individual_pixella_post(project, date, duration_min)
+        else:
+            print(response.text)
+
+
+def post_to_pixella(duration_dict):
+    for key, value in duration_dict.items():
+        project = key[0]
+        date = key[1]
+        duration_min = value // 60
+
+        individual_pixella_post(project, date, duration_min)
+
+
+def post_to_pixella_since(since, to=YESTERDAY):
+    date_array = create_date_range(since, to)
+    projects_dict = get_toggl_projects()
+    for date in date_array:
+        toggl_entries = get_toggl_entries(date)
+        duration_dict = get_duration_per_project(toggl_entries, projects_dict)
+        post_to_pixella(duration_dict)
+        print("SUCCESS", date)
+
+
+def post_to_pixella_yesterday(day):
+    projects_dict = get_toggl_projects()
+    toggl_entries = get_toggl_entries(day)
+    duration_dict = get_duration_per_project(toggl_entries, projects_dict)
+    post_to_pixella(duration_dict)
+    print("SUCCESS")
