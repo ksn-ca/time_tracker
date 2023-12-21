@@ -13,6 +13,7 @@ PIXELLA_HEADER = {"X-USER-TOKEN": PIXELLA_TOKEN}
 
 YESTERDAY = datetime.now().date() - timedelta(days=1)
 
+
 def create_date_range(start_date, end_date):
     delta = timedelta(days=1)
 
@@ -69,14 +70,12 @@ def create_pixella_urls():
     return pixella_url_dict
 
 
-PIXELLA_GRAPH_URLS = create_pixella_urls()
-
-
 def individual_pixella_post(project, date, duration_min):
-    if project in PIXELLA_GRAPH_URLS:
+    pixella_graph_urls = create_pixella_urls()
+    if project in pixella_graph_urls:
         post_params = {"date": date, "quantity": str(duration_min)}
         response = requests.post(
-            PIXELLA_GRAPH_URLS[project], json=post_params, headers=PIXELLA_HEADER
+            pixella_graph_urls[project], json=post_params, headers=PIXELLA_HEADER
         )
         if response.json()["isSuccess"] == False:
             print("RETRYING")
@@ -110,3 +109,6 @@ def post_to_pixella_yesterday(day):
     duration_dict = get_duration_per_project(toggl_entries, projects_dict)
     post_to_pixella(duration_dict)
     print("SUCCESS")
+
+def create_pixella_user():
+    pass

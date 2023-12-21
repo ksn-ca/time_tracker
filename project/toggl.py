@@ -27,6 +27,28 @@ TOGGL_HEADER = {
     "Authorization": "Basic %s" % b64encode(TOGGL_BYTE_API).decode("ascii"),
 }
 
+def check_toggl(api_key):
+    success = False
+    api_key_encoded = (f"{api_key}:api_token").encode("ascii")
+    api_key_encoded = b"" + api_key_encoded
+
+    toggl_header = {
+        "content-type": "application/json",
+        "Authorization": "Basic %s" % b64encode(api_key_encoded).decode("ascii"),
+    }
+    try:
+        response = requests.get(TOGGL_ME_URL, headers=toggl_header)
+        response.raise_for_status()
+        success = True
+        return {'success': success, 'message': 'API key is correct.', 'workspace_id': response.json()['default_workspace_id']}
+
+    except requests.exceptions.HTTPError:
+        return {'success': success, 'message': 'The API key is incorrect.', 'workspace_id': None}
+    except:
+        return {'success': success, 'message': 'There was an error in processing the request.', 'workspace_id': None}
+
+    
+
 def get_toggl_entries(date):
     date_to = date + timedelta(days=1)
     time_entry_params = {"start_date": str(date), "end_date": str(date_to)}
