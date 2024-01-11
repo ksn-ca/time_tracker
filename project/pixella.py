@@ -110,5 +110,17 @@ def post_to_pixella_yesterday(day):
     post_to_pixella(duration_dict)
     print("SUCCESS")
 
-def create_pixella_user():
-    pass
+def create_pixella_user(token, username, agree_TOS, not_minor, thanks_code):
+    # delete_pixella_user(username, token)
+    params = {'token': token, 'username': username, 'agreeTermsOfService': agree_TOS, 'notMinor': not_minor}
+    response = requests.post(PIXELLA_API, json=params)
+
+    return response.json()
+
+def delete_pixella_user(user, token):
+    delete_api = f'{PIXELLA_API}/{user}'
+    header = {"X-USER-TOKEN": token}
+
+    response = requests.delete(delete_api, headers=header)
+    print(response.json())
+
