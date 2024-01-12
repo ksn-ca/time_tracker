@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user
 from toggl import check_toggl
 import os
+import sys
 
 # OTHER
 YESTERDAY = datetime.now().date() - timedelta(days=1)
@@ -76,7 +77,7 @@ def get_pixella_info():
             pixella_username, pixella_token, success = provide_pixella_details()
             # CHECK if accurate
         elif user_input == '2':
-            pixella_username, pixella_token, success = create_new_pixella_account()                   
+            pixella_username, pixella_token, success = create_new_pixella_account()
             
         else:
             print('Sorry, this input is not supported.')
@@ -85,19 +86,21 @@ def get_pixella_info():
     return pixella_token, pixella_username, success
 
 def create_new_pixella_account():
-    pixella_username = input('Enter desired username:   ').strip()
+    pixella_username = input('The username must follow the following pattern: [a-z][a-z0-9-]{1,32}. Enter desired username:   ').strip()
     pixella_token = input("""You must create your own token. 
     A token string used to authenticate as a user to be created. 
     The token string is hashed and saved. Validation rule: [ -~]{8,128}
     Enter desired token:   """).strip()
-    pixella_TOS = input('Specify yes or no whether you agree to the terms of service. Enter yes or no:   ').strip().lower()
-    pixella_not_minor = input('Specify yes or no as to whether you are not a minor or if you are a minor and you have the parental consent of using this service. Enter yes or no:   ').strip().lower()
+    pixella_TOS_prompt = 'Specify yes or no whether you agree to the terms of service. Enter yes or no:   '
+    pixella_TOS_error_message = 'Sorry, without agreeing to terms of service, this app is unable to create an account for you.'
+    pixella_TOS = handle_user_iput(pixella_TOS_prompt, pixella_TOS_error_message) 
+
+    pixella_not_minor_prompt = 'Specify yes or no as to whether you are not a minor or if you are a minor and you have the parental consent of using this service. Enter yes or no:   '
+    pixella_not_minor_error_message = 'Sorry, but minors (or minors without parental consent) are not allowed to use Pixella.'
+    pixella_not_minor = handle_user_iput(pixella_not_minor_prompt, pixella_not_minor_error_message) 
     pixella_thanks_code = input('If you are a Pixella Patreon supporter, then please enter the thanks code. Otherwise, click enter:   ').strip()
     response = create_pixella_user(pixella_token, pixella_username, pixella_TOS, pixella_not_minor, pixella_thanks_code)
-    success = False
 
-    if response['isSuccess']:
-        pass
     if not response['isSuccess']:
         print('There was an error while making your account. The error from Pixella is:')
         print(response['message'])
@@ -115,6 +118,24 @@ def create_new_pixella_account():
     return pixella_username, pixella_token, response['isSuccess']
 
 
+def handle_user_iput(prompt, error_message):
+    user_input = ''
+
+    while user_input not in [YES, NO]:
+        user_input = input(prompt).strip().lower()
+        if user_input in YES:
+            return 'yes'
+        elif user_input in NO:
+            print(error_message)
+            user_input = input('Would you like to try again? Enter yes or no:   ').strip().lower()
+            if user_input in NO:
+                print(error_message)
+                print('The app now will be restarted.')
+                restart_prompt()
+            elif user_input == 'yes':
+                return incorrect_input(prompt, error_message)
+        else:
+            print('This input is not supported.')
 
 def provide_pixella_details():
     pixella_token = input(
@@ -132,7 +153,15 @@ def create_env_text(toggl_token, toggl_workspace_id, pixella_token, pixella_user
     text += f"{API_NAMES['toggl']['workspace']}:{toggl_workspace_id}"
     return text
 
+def create_toggl_env_text(toggl_token, toggl_workspace_id):
+    text = f"{API_NAMES['toggl']['token']}:{toggl_token}\n"
+    text += f"{API_NAMES['toggl']['workspace']}:{toggl_workspace_id}\n"
+    return text
 
+def create_pixella_env_text(pixella_token, pixella_username):
+    text = f"{API_NAMES['pixella']['token']}:{pixella_token}\n"
+    text += f"{API_NAMES['pixella']['name']}:{pixella_username}\n"
+    return text
 
 def restart_prompt(prompt=''):
     #clear()
@@ -149,7 +178,7 @@ def restart_prompt(prompt=''):
             #clear()
             start_app()
         elif user_input == '2':
-            pass
+            sys.exit('Sorry to see you go. Come back later!')
         else:
             #clear()
             print('Sorry, this input is not supported.')

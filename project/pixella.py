@@ -111,7 +111,7 @@ def post_to_pixella_yesterday(day):
     print("SUCCESS")
 
 def create_pixella_user(token, username, agree_TOS, not_minor, thanks_code):
-    # delete_pixella_user(username, token)
+    delete_pixella_user(username, token)
     params = {'token': token, 'username': username, 'agreeTermsOfService': agree_TOS, 'notMinor': not_minor}
     response = requests.post(PIXELLA_API, json=params)
 
