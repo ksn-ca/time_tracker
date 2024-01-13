@@ -3,11 +3,14 @@ from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pix
 from toggl import check_toggl
 import os
 import sys
+import re
 
 # OTHER
 YESTERDAY = datetime.now().date() - timedelta(days=1)
 SINCE = datetime.strptime("20231206", "%Y%m%d").date()
 TEST_DAY = datetime.strptime("20231206", "%Y%m%d").date()
+PIXELLA_USERNAME_REGEX = r'[a-z][a-z0-9-]{1,32}'
+PIXELLA_TOKEN_REGEX = r'[ -~]{8,128}'
 
 
 API_NAMES = {
@@ -86,11 +89,15 @@ def get_pixella_info():
     return pixella_token, pixella_username, success
 
 def create_new_pixella_account():
-    pixella_username = input('The username must follow the following pattern: [a-z][a-z0-9-]{1,32}. Enter desired username:   ').strip()
-    pixella_token = input("""You must create your own token. 
+    pixella_username_prompt  = 'The username must follow the following pattern: [a-z][a-z0-9-]{1,32}. Enter desired username:   '
+    pixella_username_error_message = 'Sorry. The username must follow the following pattern: [a-z][a-z0-9-]{1,32}.'
+    pixella_username = handle_user_regex_inputs(PIXELLA_USERNAME_REGEX, pixella_username_prompt, pixella_username_error_message)
+    pixella_token_prompt = """You must create your own token. 
     A token string used to authenticate as a user to be created. 
     The token string is hashed and saved. Validation rule: [ -~]{8,128}
-    Enter desired token:   """).strip()
+    Enter desired token:   """
+    pixella_token_error_message = 'Sorry. The token must follow the following pattern: [ -~]{8,128}.'
+    pixella_token = handle_user_regex_inputs(PIXELLA_TOKEN_REGEX, pixella_token_prompt, pixella_token_error_message)
     pixella_TOS_prompt = 'Specify yes or no whether you agree to the terms of service. Enter yes or no:   '
     pixella_TOS_error_message = 'Sorry, without agreeing to terms of service, this app is unable to create an account for you.'
     pixella_TOS = handle_user_iput(pixella_TOS_prompt, pixella_TOS_error_message) 
@@ -117,6 +124,34 @@ def create_new_pixella_account():
 
     return pixella_username, pixella_token, response['isSuccess']
 
+def check_against_regex(input, regex):
+    return bool(re.match(regex, input))
+
+
+def handle_user_regex_inputs(regex, prompt, error_message):
+    regex_bool = False
+    while not regex_bool:
+        user_input = input(prompt).strip()
+        regex_bool = check_against_regex(user_input, regex)
+        if regex_bool: 
+            return user_input
+        else:
+            print(error_message)
+            while user_input not in [YES, NO]:
+                user_input = input('Would you like to try again? Enter yes or no:   ').strip().lower()
+                if user_input in NO:
+                    print(error_message)
+                    print('The app now will be restarted.')
+                    restart_prompt()
+                elif user_input in YES:
+                    return handle_user_regex_inputs(regex, prompt, error_message)
+                else:
+                    print('This input is not supported.')
+
+
+
+
+
 
 def handle_user_iput(prompt, error_message):
     user_input = ''
@@ -132,8 +167,8 @@ def handle_user_iput(prompt, error_message):
                 print(error_message)
                 print('The app now will be restarted.')
                 restart_prompt()
-            elif user_input == 'yes':
-                return incorrect_input(prompt, error_message)
+            elif user_input in YES:
+                return handle_user_iput(prompt, error_message)
         else:
             print('This input is not supported.')
 
