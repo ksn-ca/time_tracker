@@ -124,16 +124,11 @@ def handle_user_regex_inputs(regex, prompt, error_message):
                 user_input = input(TEXT_DICT['OTHER']['TRY_AGAIN']).strip().lower()
                 if user_input in NO:
                     print(error_message)
-                    print('The app now will be restarted.')
                     restart_prompt()
                 elif user_input in YES:
                     return handle_user_regex_inputs(regex, prompt, error_message)
                 else:
                     print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
-
-
-
-
 
 
 def handle_user_input(prompt, error_message):
@@ -148,7 +143,6 @@ def handle_user_input(prompt, error_message):
             user_input = input(TEXT_DICT['OTHER']['TRY_AGAIN']).strip().lower()
             if user_input in NO:
                 print(error_message)
-                print('The app now will be restarted.')
                 restart_prompt()
             elif user_input in YES:
                 return handle_user_input(prompt, error_message)

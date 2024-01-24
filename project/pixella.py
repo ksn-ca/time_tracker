@@ -122,5 +122,7 @@ def delete_pixella_user(user, token):
     header = {"X-USER-TOKEN": token}
 
     response = requests.delete(delete_api, headers=header)
+    if not response.json()['isSuccess']:
+        delete_pixella_user(user, token)
     print(response.json())
 
