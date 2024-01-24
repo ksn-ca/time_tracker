@@ -4,6 +4,7 @@ from toggl import check_toggl
 import os
 import sys
 import re
+from text_dict import TEXT_DICT
 
 # OTHER
 YESTERDAY = datetime.now().date() - timedelta(days=1)
@@ -47,15 +48,13 @@ def create_env_file(text):
 def get_toogl_info():
     #clear()
     toggl_workspace_id = None
-    toggl_token = input(
-        "Please provide details of your Toggl account.\nToggl API token:   "
-    )
+    toggl_token = input(TEXT_DICT['PROMPTS']['TOGGL_API'])
     toggl_response = check_toggl(toggl_token)
     if not toggl_response["success"]:
         while not toggl_response["success"]:
             #clear()
             toggl_token = input(
-                f"{toggl_response['message']}\nPlease try again or enter 'stop'.\nToggl API token:   ").strip()
+                f"{toggl_response['message']}\n{TEXT_DICT['ERROR_MESSAGES']['TOGGL_API_ERROR']}").strip()
             if toggl_token.lower() == 'stop':
                 break
             toggl_response = check_toggl(toggl_token)
@@ -69,12 +68,7 @@ def get_pixella_info():
     pixella_username = None
     user_input = ''
     while user_input not in ['1', '2']:
-        user_input = input(
-            """Please choose the option:
-        1. Enter Pixella details manually (if you already have an account).
-        2. Create Pixella account now.
-        Enter either 1 or 2:   """
-        ).strip()
+        user_input = input(TEXT_DICT['PROMPTS']['PIXELLA_CHOICE_PROMPT']).strip()
 
         if user_input == '1':
             pixella_username, pixella_token, success = provide_pixella_details()
@@ -83,44 +77,33 @@ def get_pixella_info():
             pixella_username, pixella_token, success = create_new_pixella_account()
             
         else:
-            print('Sorry, this input is not supported.')
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 
     return pixella_token, pixella_username, success
 
 def create_new_pixella_account():
-    pixella_username_prompt  = 'The username must follow the following pattern: [a-z][a-z0-9-]{1,32}. Enter desired username:   '
-    pixella_username_error_message = 'Sorry. The username must follow the following pattern: [a-z][a-z0-9-]{1,32}.'
-    pixella_username = handle_user_regex_inputs(PIXELLA_USERNAME_REGEX, pixella_username_prompt, pixella_username_error_message)
-    pixella_token_prompt = """You must create your own token. 
-    A token string used to authenticate as a user to be created. 
-    The token string is hashed and saved. Validation rule: [ -~]{8,128}
-    Enter desired token:   """
-    pixella_token_error_message = 'Sorry. The token must follow the following pattern: [ -~]{8,128}.'
-    pixella_token = handle_user_regex_inputs(PIXELLA_TOKEN_REGEX, pixella_token_prompt, pixella_token_error_message)
-    pixella_TOS_prompt = 'Specify yes or no whether you agree to the terms of service. Enter yes or no:   '
-    pixella_TOS_error_message = 'Sorry, without agreeing to terms of service, this app is unable to create an account for you.'
-    pixella_TOS = handle_user_iput(pixella_TOS_prompt, pixella_TOS_error_message) 
+    pixella_username = handle_user_regex_inputs(PIXELLA_USERNAME_REGEX, TEXT_DICT['PROMPTS']['PIXELLA_USERNAME'], TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCORRECT_USERNAME'] )
+    pixella_token = handle_user_regex_inputs(PIXELLA_TOKEN_REGEX, TEXT_DICT['PROMPTS']['PIXELLA_TOKEN'], TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCORRECT_TOKEN'])
+    pixella_TOS = handle_user_input(TEXT_DICT['PROMPTS']['PIXELLA_TOS'],  TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCCORECT_TOS']) 
 
-    pixella_not_minor_prompt = 'Specify yes or no as to whether you are not a minor or if you are a minor and you have the parental consent of using this service. Enter yes or no:   '
-    pixella_not_minor_error_message = 'Sorry, but minors (or minors without parental consent) are not allowed to use Pixella.'
-    pixella_not_minor = handle_user_iput(pixella_not_minor_prompt, pixella_not_minor_error_message) 
-    pixella_thanks_code = input('If you are a Pixella Patreon supporter, then please enter the thanks code. Otherwise, click enter:   ').strip()
+    pixella_not_minor = handle_user_input(TEXT_DICT['PROMPTS']['PIXELLA_NOT_MINOR'], TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCORRECT_NOT_MINOR']) 
+    pixella_thanks_code = input(TEXT_DICT['PROMPTS']['PIXELLA_THANKS_CODE']).strip()
     response = create_pixella_user(pixella_token, pixella_username, pixella_TOS, pixella_not_minor, pixella_thanks_code)
 
     if not response['isSuccess']:
-        print('There was an error while making your account. The error from Pixella is:')
+        print(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_API_ERROR'])
         print(response['message'])
 
         user_input = ''
         while user_input not in [YES, NO]:
-            user_input = input('Would you like to try again? Enter yes or no:   ').strip().lower()
+            user_input = input(TEXT_DICT['OTHER']['TRY_AGAIN']).strip().lower()
             if user_input in YES:
                 return create_new_pixella_account()
             elif user_input in NO:
                 break
             else:
-                print('This input is not supported.')
+                print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
     return pixella_username, pixella_token, response['isSuccess']
 
@@ -138,7 +121,7 @@ def handle_user_regex_inputs(regex, prompt, error_message):
         else:
             print(error_message)
             while user_input not in [YES, NO]:
-                user_input = input('Would you like to try again? Enter yes or no:   ').strip().lower()
+                user_input = input(TEXT_DICT['OTHER']['TRY_AGAIN']).strip().lower()
                 if user_input in NO:
                     print(error_message)
                     print('The app now will be restarted.')
@@ -146,14 +129,14 @@ def handle_user_regex_inputs(regex, prompt, error_message):
                 elif user_input in YES:
                     return handle_user_regex_inputs(regex, prompt, error_message)
                 else:
-                    print('This input is not supported.')
+                    print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 
 
 
 
 
-def handle_user_iput(prompt, error_message):
+def handle_user_input(prompt, error_message):
     user_input = ''
 
     while user_input not in [YES, NO]:
@@ -162,20 +145,19 @@ def handle_user_iput(prompt, error_message):
             return 'yes'
         elif user_input in NO:
             print(error_message)
-            user_input = input('Would you like to try again? Enter yes or no:   ').strip().lower()
+            user_input = input(TEXT_DICT['OTHER']['TRY_AGAIN']).strip().lower()
             if user_input in NO:
                 print(error_message)
                 print('The app now will be restarted.')
                 restart_prompt()
             elif user_input in YES:
-                return handle_user_iput(prompt, error_message)
+                return handle_user_input(prompt, error_message)
         else:
-            print('This input is not supported.')
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 def provide_pixella_details():
-    pixella_token = input(
-        'Please provide details of your Pixella account.\nPixella API token:   ').strip()
-    pixella_username = input('Pixella username:   ').strip()
+    pixella_token = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_TOKEN']).strip()
+    pixella_username = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_USERNAME']).strip()
 
     success = True
     return pixella_username, pixella_token, success
@@ -203,29 +185,22 @@ def restart_prompt(prompt=''):
     print(prompt)
     user_input = ''
     while user_input not in ['1', '2']:
-        user_input = input(
-            """Would you like to:
-            1. Restart the app
-            2. Close the app
-            Enter 1 or 2:   """).strip()
+        user_input = input(TEXT_DICT['PROMPTS']['RESTART']).strip()
 
         if user_input == '1':
             #clear()
             start_app()
         elif user_input == '2':
-            sys.exit('Sorry to see you go. Come back later!')
+            sys.exit(TEXT_DICT['OTHER']['CLOSING_APP'])
         else:
             #clear()
-            print('Sorry, this input is not supported.')
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 
 def start_app():
     
     if not FILE_EXISTS:
-        user_input = input(
-            """There's no information about your Toggl or Pixella accounts.
-    Would you like to add it? (y/n)   """
-        ).strip().lower()
+        user_input = input(TEXT_DICT['OTHER']['NO_ENV_FILE']).strip().lower()
         if user_input in YES:
             toggl_token, toggl_workspace_id, toggl_success = get_toogl_info()
 
@@ -239,20 +214,17 @@ def start_app():
                     if file_success:
                         print('File created!')
                 else:
-                    prompt = "Sorry, but without information about your Pixella account, this app is unable to fulfill its function."
-                    restart_prompt(prompt)
+                    restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INFO_NOT_PROVIDED'])
             else:
-                prompt = "Sorry, but without correct information about your Toggl account, this app is unable to fulfill its function."
-                restart_prompt(prompt)
+                restart_prompt(TEXT_DICT['ERROR_MESSAGES']['TOGGL_INFO_NOT_PROVIDED'])
                 # user declines to provide information
         else:
-            prompt = 'Sorry, but without information about your accounts, this app is unable to fulfill its function.'
-            restart_prompt(prompt)
+            restart_prompt(TEXT_DICT['ERROR_MESSAGES']['GENERAL_INFO_NOT_PROVIDED'])
 
     # FILE EXISTS
     else:
         pass
 
 #clear()
-print("Welcome to Toggl to Pixella app!\n")
+print(TEXT_DICT['OTHER']['WELCOME'])
 start_app()
