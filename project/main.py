@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user
 from toggl import check_toggl
+from toggl_historic import post_csv_to_pixella
 import os
 import sys
 import re
 from text_dict import TEXT_DICT
 
 # OTHER
+TODAY = datetime.now().date()
 YESTERDAY = datetime.now().date() - timedelta(days=1)
 SINCE = datetime.strptime("20231206", "%Y%m%d").date()
 TEST_DAY = datetime.strptime("20231206", "%Y%m%d").date()
@@ -19,12 +21,14 @@ API_NAMES = {
     "toggl": {"token": "TOGGL_API_TOKEN", "workspace": "TOGGL_WORKSPACE_ID"},
 }
 
-ENV_FILE = "./project/file.txt"
+ENV_FILE = "./project/.env"
 
 YES = ["y", "yes"]
 NO = ["n", "no"]
 
 FILE_EXISTS = os.path.isfile(ENV_FILE)
+
+CSV_FILE_FOLDER = "./project/csv/"
 
 # post_to_pixella_yesterday(YESTERDAY)
 # post_to_pixella_since(SINCE)
@@ -33,6 +37,12 @@ FILE_EXISTS = os.path.isfile(ENV_FILE)
 def edit_env_file(key, new_val):
     pass
 
+
+def user_input_cs(prompt):
+    return input(prompt).strip()
+
+def input_modified(prompt):
+    return input(prompt).strip().lower()
 
 def create_env_file(text):
     success = False
@@ -191,8 +201,45 @@ def restart_prompt(prompt=''):
             print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 
+def sync_accounts():
+    user_input = ''
+
+    while user_input not in ['1', '2', '3', '4']:
+        user_input = input_modified('Choose an option to sync Toggl and Pixella.\n1. Sync for today only\n2. Sync for yesterday only\n3. Sync from DATE to DATE\n4. Sync .csv file \nEnter a number:   ')
+
+        if user_input == '1':
+            post_to_pixella_yesterday(TODAY)
+        elif user_input == '2':
+            post_to_pixella_yesterday(YESTERDAY)
+        elif user_input == '3':
+            date_from = input_modified('Enter a FROM date in format YYYY-MM-DD:   ')
+            date_to = input_modified('Enter a TO date in format YYYY-MM-DD:   ')
+
+            date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
+            date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
+
+            post_to_pixella_since(date_from, date_to)
+
+
+        elif user_input == '4':
+            file_name = user_input_cs('You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   ')
+            file_path = CSV_FILE_FOLDER + file_name
+
+            if not file_path.endswith('.csv'):
+                file_path += '.csv'
+
+            if os.path.isfile(file_path):
+                print('Please wait as it may take a while.')
+                post_csv_to_pixella(file_path)
+            else:
+                print(f'Sorry, no file with the name {file_name} was found.')
+        else:
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
+
+
+
 def start_app():
-    
     if not FILE_EXISTS:
         user_input = input(TEXT_DICT['OTHER']['NO_ENV_FILE']).strip().lower()
         if user_input in YES:
@@ -206,7 +253,8 @@ def start_app():
                     file_success = create_env_file(text)
 
                     if file_success:
-                        print('File created!')
+                        print(TEXT_DICT['NOTIFICATIONS']['FILE_CREATED'])
+                        start_app()
                 else:
                     restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INFO_NOT_PROVIDED'])
             else:
@@ -217,7 +265,22 @@ def start_app():
 
     # FILE EXISTS
     else:
-        pass
+        user_input = ''
+        while user_input not in ['1', '2', '3', '4', '5']:
+            user_input = input_modified('What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Update your Pixella account \n5. Delete your Pixella account \nEnter a number:   ')
+            if user_input == '1':
+                sync_accounts()
+            elif user_input == '2':
+                pass
+            elif user_input == '3':
+                pass
+            elif user_input == '4':
+                pass
+            elif user_input == '5':
+                pass
+            else:
+                print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+        
 
 #clear()
 print(TEXT_DICT['OTHER']['WELCOME'])
