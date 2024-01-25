@@ -52,7 +52,7 @@ def create_new_graph(
 def get_pixella_graphs():
     response = requests.get(PIXELLA_GRAPH_API, headers=PIXELLA_HEADER)
     if "message" in response.json():
-        print("RETRYING")
+        # print("RETRYING")
         return get_pixella_graphs()
     else:
         pixella_graph_dict = {
@@ -78,10 +78,10 @@ def individual_pixella_post(project, date, duration_min):
             pixella_graph_urls[project], json=post_params, headers=PIXELLA_HEADER
         )
         if response.json()["isSuccess"] == False:
-            print("RETRYING")
+            # print("RETRYING")
             individual_pixella_post(project, date, duration_min)
-        else:
-            print(response.text)
+        # else:
+        #     print(response.text)
 
 
 def post_to_pixella(duration_dict):
@@ -100,7 +100,9 @@ def post_to_pixella_since(since, to=YESTERDAY):
         toggl_entries = get_toggl_entries(date)
         duration_dict = get_duration_per_project(toggl_entries, projects_dict)
         post_to_pixella(duration_dict)
-        print("SUCCESS", date)
+        # print("SUCCESS", date)
+
+    print(f"Successfully sent data from Toggl to Pixella for dates between {since} and {to}")
 
 
 def post_to_pixella_yesterday(day):
@@ -108,7 +110,8 @@ def post_to_pixella_yesterday(day):
     toggl_entries = get_toggl_entries(day)
     duration_dict = get_duration_per_project(toggl_entries, projects_dict)
     post_to_pixella(duration_dict)
-    print("SUCCESS")
+    # print("SUCCESS")
+    print(f"Successfully sent data from Toggl to Pixella for {day}")
 
 def create_pixella_user(token, username, agree_TOS, not_minor, thanks_code):
     delete_pixella_user(username, token)

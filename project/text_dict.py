@@ -41,8 +41,12 @@ TEXT_DICT = {
         'PIXELLA_EXISTING_USERNAME': 'Pixella username:   '
     },
     'NOTIFICATIONS': {
-        'INPUT_NOT_SUPPORTED': 'This input is not supported.',
-        'RESTART_APP': 'The app now will be restarted.',
+        'INPUT_NOT_SUPPORTED':
+        'This input is not supported.',
+        'RESTART_APP':
+        'The app now will be restarted.',
+        'FILE_CREATED':
+        'Your information about Pixella and Toggl was successfully saved. (Locally of course!)'
     },
     'OTHER': {
         'CLOSING_APP':
