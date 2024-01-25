@@ -43,7 +43,6 @@ TEXT_DICT = {
     'NOTIFICATIONS': {
         'INPUT_NOT_SUPPORTED': 'This input is not supported.',
         'RESTART_APP': 'The app now will be restarted.',
-        'FILE_CREATED': 'Your information about Pixella and Toggl was successfully saved. (Locally of course!)'
     },
     'OTHER': {
         'CLOSING_APP':

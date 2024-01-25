@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-from pixella import post_to_pixella
+from main import post_to_pixella
 
 FILE_PATH = "csv/Toggl_time_entries_2023-01-01_to_2023-12-31.csv"
 
@@ -29,6 +29,5 @@ def post_csv_to_pixella(file_path):
 
 
     post_to_pixella(toggl_dict)
-    print(f'Successfully posted the information provided in the Toggl file {file_path} to Pixella.')
 
 # post_csv_to_pixella(FILE_PATH)
