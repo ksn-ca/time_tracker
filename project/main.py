@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user
 from toggl import check_toggl
@@ -223,19 +222,26 @@ def sync_accounts():
 
 
         elif user_input == '4':
-            file_name = user_input_cs('You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   ')
-            file_path = CSV_FILE_FOLDER + file_name
+            file_path = ''
+            while os.path.isfile(file_path) == False:
+                file_name = user_input_cs('You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   ')
+                file_path = CSV_FILE_FOLDER + file_name
 
-            if not file_path.endswith('.csv'):
-                file_path += '.csv'
+                if file_name.lower() == 'stop':
+                    break
 
-            if os.path.isfile(file_path):
-                print('Please wait as it may take a while.')
-                post_csv_to_pixella(file_path)
-            else:
-                print(f'Sorry, no file with the name {file_name} was found.')
+                if not file_path.endswith('.csv'):
+                    file_path += '.csv'
+
+                if os.path.isfile(file_path):
+                    print('Please wait as it may take a while.')
+                    post_csv_to_pixella(file_path)
+                else:
+                    print(f'Sorry, no file with the name {file_name} was found.\nPlease try again or enter "stop."')
         else:
             print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
+    start_app()
 
 
 
