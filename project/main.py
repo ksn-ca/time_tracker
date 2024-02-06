@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from pixella import *
-from toggl import check_toggl
+from toggl import check_toggl, get_toggl_projects
 from toggl_historic import post_csv_to_pixella
 import os
 import sys
@@ -224,8 +224,6 @@ def sync_accounts():
                 except:
                     pass
 
-
-
         elif user_input == '4':
             file_path = ''
             while os.path.isfile(file_path) == False:
@@ -268,7 +266,7 @@ def handle_user_date_entry(prompt):
             return user_date
 
 
-def get_japanese_color(eng_color):
+def get_japanese_color(prompt):
     switch = {
         'green': 'shibafu',
         'red': 'momiji',
@@ -277,19 +275,29 @@ def get_japanese_color(eng_color):
         'purple': 'ajisai',
         'black': 'kuro'
     }
+
+    user_input = ''
+    while switch.get(user_input) == None:
+        user_input = input_modified(prompt)
     
-    return switch.get(eng_color)
+    return switch.get(user_input)
     
 def create_pixella_graphs():
+
+    graphs = get_pixella_graphs()
+    toggl_projects = get_toggl_projects()
+    print(f'You have the following graphs in Pixella: {", ".join(graphs.keys())}')
+    print(f'You have the following projects in Toggl: {", ".join(toggl_projects.values())}')
     pixella_graph_name = user_input_cs(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_NAME'])
     pixella_graph_id = pixella_graph_name.lower()
-    pixella_graph_color =  input_modified(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_COLOR'])
-    pixella_graph_color = get_japanese_color(pixella_graph_color)
+    pixella_graph_color = get_japanese_color(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_COLOR'])
     pixella_graph_timezone = 'America/Montreal'
 
     response = create_new_graph(pixella_graph_id, pixella_graph_name, color=pixella_graph_color)
 
     print(f'Graph with name {pixella_graph_name} has been successfully created.')
+
+    start_app()
 
 
 def delete_pixella_graph():
