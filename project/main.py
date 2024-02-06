@@ -214,13 +214,16 @@ def sync_accounts():
         elif user_input == '2':
             post_to_pixella_yesterday(YESTERDAY)
         elif user_input == '3':
-            date_from = input_modified(TEXT_DICT['PROMPTS']['SYNC_FROM_DATE'])
-            date_to = input_modified(TEXT_DICT['PROMPTS']['SYNC_TO_DATE'])
+            cont = True
+            while cont:
+                date_from = handle_user_date_entry(TEXT_DICT['PROMPTS']['SYNC_FROM_DATE'])
+                date_to = handle_user_date_entry(TEXT_DICT['PROMPTS']['SYNC_TO_DATE'])
+                try:
+                    post_to_pixella_since(date_from, date_to)
+                    cont = False
+                except:
+                    pass
 
-            date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
-            date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
-
-            post_to_pixella_since(date_from, date_to)
 
 
         elif user_input == '4':
@@ -244,6 +247,26 @@ def sync_accounts():
             print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
     start_app()
+
+def valid_date(datestring):
+    try:
+        date = datetime.strptime(datestring, '%Y-%m-%d')
+        return date.date()
+    except ValueError:
+        return None
+    except:
+        return None
+
+def handle_user_date_entry(prompt):
+    user_date = None
+    while user_date == None:
+        user_date = input_modified(prompt)
+        user_date = valid_date(user_date)
+        if user_date == None:
+            print('The date must be in format YYYY-MM-DD. Please try again.')
+        else:
+            return user_date
+
 
 def get_japanese_color(eng_color):
     switch = {

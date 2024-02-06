@@ -78,8 +78,9 @@ def get_toggl_entries(date):
     time_entries_response = requests.get(
         TOGGL_TIME_ENTRY_API, headers=get_toggl_header(), params=time_entry_params
     )
-    time_entries = json.loads(time_entries_response.text)
-    return time_entries
+
+    # time_entries = json.loads(time_entries_response.text)
+    return time_entries_response.json()
 
 
 def get_toggl_projects():
@@ -91,17 +92,20 @@ def get_toggl_projects():
 
 def get_duration_per_project(entries, projects_dict):
     project_time_dict = {}
-    for entry in entries:
-        if entry["stop"] != None:
-            project = projects_dict[entry["project_id"]]
-            duration = entry["duration"]
-            utc_date = datetime.strptime(
-                entry["start"], "%Y-%m-%dT%H:%M:%S+00:00"
-            ).replace(tzinfo=from_zone)
-            actual_date = utc_date.astimezone(to_zone).date().strftime("%Y%m%d")
-            key = (project, actual_date)
-            if key in project_time_dict:
-                project_time_dict[key] += duration
-            else:
-                project_time_dict[key] = duration 
-    return project_time_dict
+    try:
+        for entry in entries:
+            if entry["stop"] != None:
+                project = projects_dict[entry["project_id"]]
+                duration = entry["duration"]
+                utc_date = datetime.strptime(
+                    entry["start"], "%Y-%m-%dT%H:%M:%S+00:00"
+                ).replace(tzinfo=from_zone)
+                actual_date = utc_date.astimezone(to_zone).date().strftime("%Y%m%d")
+                key = (project, actual_date)
+                if key in project_time_dict:
+                    project_time_dict[key] += duration
+                else:
+                    project_time_dict[key] = duration 
+        return project_time_dict
+    except:
+        print(str(entries).capitalize())
