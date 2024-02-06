@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user, get_pixella_graphs, create_new_graph, delete_pixella_graph_by_id
+from pixella import *
 from toggl import check_toggl
 from toggl_historic import post_csv_to_pixella
 import os
@@ -279,7 +279,7 @@ def delete_pixella_graph():
         if user_input in graphs.keys():
             graph_to_delete = user_input
             while user_input not in [YES, NO]:
-                user_input = input_modified(f'This action cannot be undone. All your information in Pixella regarding this graph will be deleted.\nAre you sure you want to delete graph "{user_input}"?\nEnter yes or no:   ')
+                user_input = input_modified(f'This action cannot be undone. All your information in pixella regarding this graph will be deleted.\nAre you sure you want to delete graph "{user_input}"?\nEnter yes or no:   ')
                 if user_input in YES:
                     delete_pixella_graph_by_id(graphs[graph_to_delete])
                     print(f'Your graph {graph_to_delete} has been successfully deleted.')
@@ -301,6 +301,21 @@ def delete_another_graph_prompt():
         if user_input == '1':
             delete_pixella_graph()
         elif user_input == '2':
+            start_app()
+        else:
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
+def delete_user_prompt():
+    user_input = ''
+    while user_input not in [YES, NO]:
+        user_input = input_modified('This action cannot be undone. Your Pixella account will be deleted. Your .env file will be deleted as well as the app requires both Pixella and Toggl to function.\nAre you sure you want to delete your account?\nEnter yes or no:   ')
+
+        if user_input in YES:
+            success = delete_pixella_user_env()
+            if success:
+                os.remove(ENV_FILE)
+                print('Your account has been deleted. Your .env file has been deleted.')
+        elif user_input in NO:
             start_app()
         else:
             print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
@@ -349,7 +364,7 @@ def start_app():
 
 
         user_input = ''
-        while user_input not in ['1', '2', '3', '4', '5']:
+        while user_input not in ['1', '2', '3', '4']:
             user_input = input_modified('What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Delete your Pixella account \nEnter a number:   ')
             if user_input == '1':
                 sync_accounts()
@@ -358,11 +373,12 @@ def start_app():
             elif user_input == '3':
                 delete_pixella_graph()
             elif user_input == '4':
-                pass
+                delete_user_prompt()
             else:
                 print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
         
 
 #clear()
 print(TEXT_DICT['OTHER']['WELCOME'])
+
 start_app()

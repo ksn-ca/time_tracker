@@ -131,7 +131,7 @@ def post_to_pixella_yesterday(day):
     print(f"Successfully sent data from Toggl to Pixella for {day}")
 
 def create_pixella_user(token, username, agree_TOS, not_minor, thanks_code):
-    delete_pixella_user(username, token)
+    # delete_pixella_user(username, token)
     params = {'token': token, 'username': username, 'agreeTermsOfService': agree_TOS, 'notMinor': not_minor}
     response = requests.post(PIXELLA_API, json=params)
 
@@ -144,7 +144,14 @@ def delete_pixella_user(user, token):
     response = requests.delete(delete_api, headers=header)
     if not response.json()['isSuccess']:
         delete_pixella_user(user, token)
-    print(response.json())
+
+def delete_pixella_user_env():
+    delete_api = f'{PIXELLA_API}/{get_pixella_username()}'
+
+    response = requests.delete(delete_api, headers=get_pixella_header())
+    if not response.json()['isSuccess']:
+        delete_pixella_user_env()    
+    return response.json()['isSuccess']
 
 def delete_pixella_graph_by_id(graph_id):
     api = get_pixella_graph_api() + f'/{graph_id}'
