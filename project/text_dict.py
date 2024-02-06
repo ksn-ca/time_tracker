@@ -20,7 +20,10 @@ TEXT_DICT = {
         "Please try again or enter 'stop'.\nToggl API token:   ",
         'PIXELLA_NO_WANT_GRAPH':
         'Sorry, you need to have Pixella graphs for this app to function.',
-        'PIXELLA_NO_GRAPHS': 'You have no graphs.'
+        'PIXELLA_NO_GRAPHS':
+        'You have no graphs.',
+        'PIXELLA_USER_INCORRECT':
+        'This user or token are incorrent. Please try again.'
     },
     'PROMPTS': {
         'PIXELLA_USERNAME':

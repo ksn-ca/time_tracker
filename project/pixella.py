@@ -165,3 +165,22 @@ def delete_pixella_graph_by_id(graph_id):
     else: 
         return response.json()['isSuccess']
 
+
+def check_pixella_user(username, token):
+    response = requests.get( f"{PIXELLA_API}/{username}/graphs", headers= {"X-USER-TOKEN": token})
+    if 'message' in response.json():
+        if 'does not exist or the token is wrong' in response.json()['message']:
+            return False
+        else:
+            return check_pixella_user(username, token)
+    else:
+        return True
+    # if "message" in response.json():
+    #     # print("RETRYING")
+    #     return get_pixella_graphs()
+    # else:
+    #     pixella_graph_dict = {
+    #         graph["name"]: graph["id"] for graph in response.json()["graphs"]
+    #     }
+    #     return pixella_graph_dict
+

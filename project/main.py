@@ -162,10 +162,14 @@ def handle_user_input(prompt, error_message):
             print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 def provide_pixella_details():
-    pixella_token = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_TOKEN']).strip()
-    pixella_username = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_USERNAME']).strip()
-
-    success = True
+    success = False
+    while not success:
+        pixella_token = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_TOKEN']).strip()
+        pixella_username = input(TEXT_DICT['PROMPTS']['PIXELLA_EXISTING_USERNAME']).strip()
+        
+        success = check_pixella_user(pixella_username, pixella_token)
+        if not success:
+            print(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_USER_INCORRECT'])
     return pixella_username, pixella_token, success
 
 
