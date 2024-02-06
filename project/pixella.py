@@ -1,17 +1,32 @@
 import requests
 from decouple import config
-
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from toggl import get_toggl_entries, get_toggl_projects, get_duration_per_project
 
 # PIXELLA GRAPH
 PIXELLA_API = "https://pixe.la/v1/users"
-PIXELLA_TOKEN = config("PIXELLA_TOKEN")
-PIXELLA_USERNAME = config("PIXELLA_USERNAME")
-PIXELLA_GRAPH_API = f"{PIXELLA_API}/{PIXELLA_USERNAME}/graphs"
-PIXELLA_HEADER = {"X-USER-TOKEN": PIXELLA_TOKEN}
+# PIXELLA_TOKEN = config("PIXELLA_TOKEN", default='')
+# PIXELLA_USERNAME = config("PIXELLA_USERNAME", default='')
+# PIXELLA_GRAPH_API = f"{PIXELLA_API}/{PIXELLA_USERNAME}/graphs"
+# PIXELLA_HEADER = {"X-USER-TOKEN": PIXELLA_TOKEN}
 
 YESTERDAY = datetime.now().date() - timedelta(days=1)
+
+
+def get_pixella_username():
+    load_dotenv()
+    return config("PIXELLA_USERNAME")
+
+def get_pixella_token():
+    load_dotenv()
+    return config("PIXELLA_TOKEN")
+
+def get_pixella_header():
+    return {"X-USER-TOKEN": get_pixella_token()}
+
+def get_pixella_graph_api():
+    return f"{PIXELLA_API}/{get_pixella_username()}/graphs"
 
 
 def create_date_range(start_date, end_date):
@@ -44,13 +59,14 @@ def create_new_graph(
         "timezone": timezone,
     }
     response = requests.post(
-        PIXELLA_GRAPH_API, json=graph_params, headers=PIXELLA_HEADER
+        get_pixella_graph_api(), json=graph_params, headers=get_pixella_header()
     )
-    print(response.text)
+    
+    return response.json()
 
 
 def get_pixella_graphs():
-    response = requests.get(PIXELLA_GRAPH_API, headers=PIXELLA_HEADER)
+    response = requests.get(get_pixella_graph_api(), headers=get_pixella_header())
     if "message" in response.json():
         # print("RETRYING")
         return get_pixella_graphs()
@@ -64,7 +80,7 @@ def get_pixella_graphs():
 def create_pixella_urls():
     pixella_graph_dict = get_pixella_graphs()
     pixella_url_dict = {
-        project: f"{PIXELLA_GRAPH_API}/{id}"
+        project: f"{get_pixella_graph_api()}/{id}"
         for project, id in pixella_graph_dict.items()
     }
     return pixella_url_dict
@@ -75,7 +91,8 @@ def individual_pixella_post(project, date, duration_min):
     if project in pixella_graph_urls:
         post_params = {"date": date, "quantity": str(duration_min)}
         response = requests.post(
-            pixella_graph_urls[project], json=post_params, headers=PIXELLA_HEADER
+            pixella_graph_urls[project], json=post_params, headers=get_pixella_header()
+
         )
         if response.json()["isSuccess"] == False:
             # print("RETRYING")
@@ -128,4 +145,13 @@ def delete_pixella_user(user, token):
     if not response.json()['isSuccess']:
         delete_pixella_user(user, token)
     print(response.json())
+
+def delete_pixella_graph_by_id(graph_id):
+    api = get_pixella_graph_api() + f'/{graph_id}'
+    header = get_pixella_header()
+    response = requests.delete(api, headers=header)
+    if response.json()['isSuccess'] == False:
+        delete_pixella_graph_by_id(graph_id)
+    else: 
+        return response.json()['isSuccess']
 

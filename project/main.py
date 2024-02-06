@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user
+from pixella import post_to_pixella_since, post_to_pixella_yesterday, create_pixella_user, get_pixella_graphs, create_new_graph, delete_pixella_graph_by_id
 from toggl import check_toggl
 from toggl_historic import post_csv_to_pixella
 import os
@@ -25,8 +25,6 @@ ENV_FILE = "./project/.env"
 
 YES = ["y", "yes"]
 NO = ["n", "no"]
-
-FILE_EXISTS = os.path.isfile(ENV_FILE)
 
 CSV_FILE_FOLDER = "./project/csv/"
 
@@ -98,7 +96,7 @@ def create_new_pixella_account():
     pixella_TOS = handle_user_input(TEXT_DICT['PROMPTS']['PIXELLA_TOS'],  TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCCORECT_TOS']) 
 
     pixella_not_minor = handle_user_input(TEXT_DICT['PROMPTS']['PIXELLA_NOT_MINOR'], TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INCORRECT_NOT_MINOR']) 
-    pixella_thanks_code = input(TEXT_DICT['PROMPTS']['PIXELLA_THANKS_CODE']).strip()
+    pixella_thanks_code = '' # input(TEXT_DICT['PROMPTS']['PIXELLA_THANKS_CODE']).strip()
     response = create_pixella_user(pixella_token, pixella_username, pixella_TOS, pixella_not_minor, pixella_thanks_code)
 
     if not response['isSuccess']:
@@ -168,20 +166,20 @@ def provide_pixella_details():
 
 
 def create_env_text(toggl_token, toggl_workspace_id, pixella_token, pixella_username):
-    text = f"{API_NAMES['pixella']['token']}:{pixella_token}\n"
-    text += f"{API_NAMES['pixella']['name']}:{pixella_username}\n"
-    text += f"{API_NAMES['toggl']['token']}:{toggl_token}\n"
-    text += f"{API_NAMES['toggl']['workspace']}:{toggl_workspace_id}"
+    text = f"{API_NAMES['pixella']['token']}={pixella_token}\n"
+    text += f"{API_NAMES['pixella']['name']}={pixella_username}\n"
+    text += f"{API_NAMES['toggl']['token']}={toggl_token}\n"
+    text += f"{API_NAMES['toggl']['workspace']}={toggl_workspace_id}"
     return text
 
 def create_toggl_env_text(toggl_token, toggl_workspace_id):
-    text = f"{API_NAMES['toggl']['token']}:{toggl_token}\n"
-    text += f"{API_NAMES['toggl']['workspace']}:{toggl_workspace_id}\n"
+    text = f"{API_NAMES['toggl']['token']}={toggl_token}\n"
+    text += f"{API_NAMES['toggl']['workspace']}={toggl_workspace_id}\n"
     return text
 
 def create_pixella_env_text(pixella_token, pixella_username):
-    text = f"{API_NAMES['pixella']['token']}:{pixella_token}\n"
-    text += f"{API_NAMES['pixella']['name']}:{pixella_username}\n"
+    text = f"{API_NAMES['pixella']['token']}={pixella_token}\n"
+    text += f"{API_NAMES['pixella']['name']}={pixella_username}\n"
     return text
 
 def restart_prompt(prompt=''):
@@ -243,11 +241,75 @@ def sync_accounts():
 
     start_app()
 
+def get_japanese_color(eng_color):
+    switch = {
+        'green': 'shibafu',
+        'red': 'momiji',
+        'blue': 'sora',
+        'yellow': 'ichou',
+        'purple': 'ajisai',
+        'black': 'kuro'
+    }
+    
+    return switch.get(eng_color)
+    
+def create_pixella_graphs():
+    print('This is Pixella graph creation prompt.')
+
+    pixella_graph_name = user_input_cs('Enter a name for your graph. For Toggl to successfully sync with Pixella, the name of the graph MUST match corresponding Toggl Project name.\nEnter graph name:   ')
+    pixella_graph_id = pixella_graph_name.lower()
+    pixella_graph_color =  input_modified('Which colour do you want your graph to be? Choose green, red, blue, yellow, purple or black:   ')
+    pixella_graph_color = get_japanese_color(pixella_graph_color)
+    pixella_graph_timezone = 'America/Montreal'
+
+    response = create_new_graph(pixella_graph_id, pixella_graph_name, color=pixella_graph_color)
+    print(response)
+
+def delete_pixella_graph():
+    
+    print('This is Pixella graph deletion prompt.')
+
+    graphs = get_pixella_graphs()
+    if len(graphs) == 0:
+        print('You have no graphs.')
+        start_app()
+    else:
+        print(f'You have the following graphs: {", ".join(graphs.keys())}')
+        user_input = user_input_cs('Which graph do you want to delete? Enter a name:   ')
+        if user_input in graphs.keys():
+            graph_to_delete = user_input
+            while user_input not in [YES, NO]:
+                user_input = input_modified(f'This action cannot be undone. All your information in Pixella regarding this graph will be deleted.\nAre you sure you want to delete graph "{user_input}"?\nEnter yes or no:   ')
+                if user_input in YES:
+                    delete_pixella_graph_by_id(graphs[graph_to_delete])
+                    print(f'Your graph {graph_to_delete} has been successfully deleted.')
+                    delete_another_graph_prompt()
+                elif user_input in NO:
+                    delete_another_graph_prompt()
+                else:
+                    print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+        else:
+            print(f"There is no graph with the name {user_input}. Please try again.")
+            delete_pixella_graph()
+
+
+
+def delete_another_graph_prompt():
+    user_input = ''
+    while user_input not in ['1', '2']:
+        user_input = input_modified('Would you like to:\n1. Delete another graph\n2. Return to main menu\nEnter a number:   ')
+        if user_input == '1':
+            delete_pixella_graph()
+        elif user_input == '2':
+            start_app()
+        else:
+            print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
 
 
 
 def start_app():
-    if not FILE_EXISTS:
+    if not os.path.isfile(ENV_FILE):
         user_input = input(TEXT_DICT['OTHER']['NO_ENV_FILE']).strip().lower()
         if user_input in YES:
             toggl_token, toggl_workspace_id, toggl_success = get_toogl_info()
@@ -272,18 +334,30 @@ def start_app():
 
     # FILE EXISTS
     else:
+        no_graphs = len(get_pixella_graphs()) == 0
+
+        if no_graphs:
+            user_input = ''
+            while user_input not in [YES, NO]:
+                user_input = input_modified('You currently have no Pixella graphs. You need graphs in order for this app to function.\nWould you like to create one?\nEnter yes or no:   ')
+                if user_input in YES:
+                    create_pixella_graphs()
+                elif user_input in NO:
+                    restart_prompt('Sorry, you need to have Pixella graphs for this app to function.')
+                else:
+                    print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
+
         user_input = ''
         while user_input not in ['1', '2', '3', '4', '5']:
-            user_input = input_modified('What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Update your Pixella account \n5. Delete your Pixella account \nEnter a number:   ')
+            user_input = input_modified('What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Delete your Pixella account \nEnter a number:   ')
             if user_input == '1':
                 sync_accounts()
             elif user_input == '2':
-                pass
+                create_pixella_graphs()
             elif user_input == '3':
-                pass
+                delete_pixella_graph()
             elif user_input == '4':
-                pass
-            elif user_input == '5':
                 pass
             else:
                 print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
