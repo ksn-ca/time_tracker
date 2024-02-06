@@ -61,6 +61,9 @@ def create_new_graph(
     response = requests.post(
         get_pixella_graph_api(), json=graph_params, headers=get_pixella_header()
     )
+
+    if response.json()['isSuccess'] == False:
+        return create_new_graph(id, project_name, color)
     
     return response.json()
 

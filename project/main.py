@@ -207,15 +207,15 @@ def sync_accounts():
     user_input = ''
 
     while user_input not in str_range(1,5):
-        user_input = input_modified('Choose an option to sync Toggl and Pixella.\n1. Sync for today only\n2. Sync for yesterday only\n3. Sync from DATE to DATE\n4. Sync .csv file \nEnter a number:   ')
+        user_input = input_modified(TEXT_DICT['PROMPTS']['SYNC'])
 
         if user_input == '1':
             post_to_pixella_yesterday(TODAY)
         elif user_input == '2':
             post_to_pixella_yesterday(YESTERDAY)
         elif user_input == '3':
-            date_from = input_modified('Enter a FROM date in format YYYY-MM-DD:   ')
-            date_to = input_modified('Enter a TO date in format YYYY-MM-DD:   ')
+            date_from = input_modified(TEXT_DICT['PROMPTS']['SYNC_FROM_DATE'])
+            date_to = input_modified(TEXT_DICT['PROMPTS']['SYNC_TO_DATE'])
 
             date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
             date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
@@ -226,7 +226,7 @@ def sync_accounts():
         elif user_input == '4':
             file_path = ''
             while os.path.isfile(file_path) == False:
-                file_name = user_input_cs('You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   ')
+                file_name = user_input_cs(TEXT_DICT['PROMPTS']['SYNC_FILE'])
                 file_path = CSV_FILE_FOLDER + file_name
 
                 if file_name.lower() == 'stop':
@@ -236,7 +236,7 @@ def sync_accounts():
                     file_path += '.csv'
 
                 if os.path.isfile(file_path):
-                    print('Please wait as it may take a while.')
+                    print(TEXT_DICT['NOTIFICATIONS']['PLZ_WAIT'])
                     post_csv_to_pixella(file_path)
                 else:
                     print(f'Sorry, no file with the name {file_name} was found.\nPlease try again or enter "stop."')
@@ -258,28 +258,26 @@ def get_japanese_color(eng_color):
     return switch.get(eng_color)
     
 def create_pixella_graphs():
-    print('This is Pixella graph creation prompt.')
-
-    pixella_graph_name = user_input_cs('Enter a name for your graph. For Toggl to successfully sync with Pixella, the name of the graph MUST match corresponding Toggl Project name.\nEnter graph name:   ')
+    pixella_graph_name = user_input_cs(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_NAME'])
     pixella_graph_id = pixella_graph_name.lower()
-    pixella_graph_color =  input_modified('Which colour do you want your graph to be? Choose green, red, blue, yellow, purple or black:   ')
+    pixella_graph_color =  input_modified(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_COLOR'])
     pixella_graph_color = get_japanese_color(pixella_graph_color)
     pixella_graph_timezone = 'America/Montreal'
 
     response = create_new_graph(pixella_graph_id, pixella_graph_name, color=pixella_graph_color)
-    print(response)
+
+    print(f'Graph with name {pixella_graph_name} has been successfully created.')
+
 
 def delete_pixella_graph():
     
-    print('This is Pixella graph deletion prompt.')
-
     graphs = get_pixella_graphs()
     if len(graphs) == 0:
-        print('You have no graphs.')
+        print(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_NO_GRAPHS'])
         start_app()
     else:
         print(f'You have the following graphs: {", ".join(graphs.keys())}')
-        user_input = user_input_cs('Which graph do you want to delete? Enter a name:   ')
+        user_input = user_input_cs(TEXT_DICT['PROMPTS']['PIXELLA_DELETE_GRAPH'])
         if user_input in graphs.keys():
             graph_to_delete = user_input
             while user_input not in YES_AND_NO:
@@ -301,7 +299,7 @@ def delete_pixella_graph():
 def delete_another_graph_prompt():
     user_input = ''
     while user_input not in str_range(1,3):
-        user_input = input_modified('Would you like to:\n1. Delete another graph\n2. Return to main menu\nEnter a number:   ')
+        user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_DELETE_ANOTHER_GRAPH'])
         if user_input == '1':
             delete_pixella_graph()
         elif user_input == '2':
@@ -312,13 +310,13 @@ def delete_another_graph_prompt():
 def delete_user_prompt():
     user_input = ''
     while user_input not in YES_AND_NO:
-        user_input = input_modified('This action cannot be undone. Your Pixella account will be deleted. Your .env file will be deleted as well as the app requires both Pixella and Toggl to function.\nAre you sure you want to delete your account?\nEnter yes or no:   ')
+        user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_DELETE_USER'])
 
         if user_input in YES:
             success = delete_pixella_user_env()
             if success:
                 os.remove(ENV_FILE)
-                print('Your account has been deleted. Your .env file has been deleted.')
+                print(TEXT_DICT['NOTIFICATIONS']['PIXELLA_USER_DELETED'])
         elif user_input in NO:
             start_app()
         else:
@@ -358,18 +356,18 @@ def start_app():
         if no_graphs:
             user_input = ''
             while user_input not in YES_AND_NO:
-                user_input = input_modified('You currently have no Pixella graphs. You need graphs in order for this app to function.\nWould you like to create one?\nEnter yes or no:   ')
+                user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_CREATE_GRAPH'])
                 if user_input in YES:
                     create_pixella_graphs()
                 elif user_input in NO:
-                    restart_prompt('Sorry, you need to have Pixella graphs for this app to function.')
+                    restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_NO_WANT_GRAPH'])
                 else:
                     print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
 
         user_input = ''
         while user_input not in str_range(1,5):
-            user_input = input_modified('What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Delete your Pixella account \nEnter a number:   ')
+            user_input = input_modified(TEXT_DICT['PROMPTS']['MAIN_APP'])
             if user_input == '1':
                 sync_accounts()
             elif user_input == '2':
