@@ -83,7 +83,7 @@ def get_toggl_entries(date):
 
 
 def get_toggl_projects():
-    projects_response = requests.get(get_toggl_projects(), headers=get_toggl_header())
+    projects_response = requests.get(get_toggl_projects_api(), headers=get_toggl_header())
     projects_json = json.loads(projects_response.text)
     projects_dict = {entry["id"]: entry["name"] for entry in projects_json}
     return projects_dict
