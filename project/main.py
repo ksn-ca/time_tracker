@@ -305,7 +305,7 @@ def create_pixella_graphs():
 
         user_input = ''
         while user_input not in YES_AND_NO:
-            user_input = input_modified('Would you like to create another graph?\nEnter yes or no:   ')
+            user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_CREATE_ANOTHER_GRAPH'])
             if user_input in YES:
                 pass
             elif user_input in NO: 
@@ -414,7 +414,7 @@ def start_app():
 
 
         user_input = ''
-        while user_input not in str_range(1,5):
+        while user_input not in str_range(1,6):
             user_input = input_modified(TEXT_DICT['PROMPTS']['MAIN_APP'])
             if user_input == '1':
                 sync_accounts()
@@ -424,6 +424,8 @@ def start_app():
                 delete_pixella_graph()
             elif user_input == '4':
                 delete_user_prompt()
+            elif user_input == '5':
+                sys.exit(TEXT_DICT['OTHER']['CLOSING_APP'])
             else:
                 print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
         

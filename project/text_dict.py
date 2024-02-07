@@ -47,7 +47,7 @@ TEXT_DICT = {
         'PIXELLA_EXISTING_USERNAME':
         'Pixella username:   ',
         'MAIN_APP':
-        'What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Delete your Pixella account \nEnter a number:   ',
+        'What would you like to do?\n1. Sync Toggl and Pixella \n2. Create new Pixella graphs \n3. Delete Pixella graphs \n4. Delete your Pixella account \n5.Close the app \nEnter a number:   ',
         'PIXELLA_CREATE_GRAPH':
         'You currently have no Pixella graphs. You need graphs in order for this app to function.\nWould you like to create one?\nEnter yes or no:   ',
         'PIXELLA_DELETE_USER':
@@ -67,7 +67,9 @@ TEXT_DICT = {
         'SYNC_TO_DATE':
         'Enter a TO date in format YYYY-MM-DD:   ',
         'SYNC_FILE':
-        'You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   '
+        'You must have a Toggl exported file in csv folder of this project for this function to run.\nPlease provide the name of the file:   ',
+        'PIXELLA_CREATE_ANOTHER_GRAPH':
+        'Would you like to create another graph?\nEnter yes or no:   '
     },
     'NOTIFICATIONS': {
         'INPUT_NOT_SUPPORTED': 'This input is not supported.',
