@@ -287,19 +287,32 @@ def get_japanese_color(prompt):
     return switch.get(user_input)
     
 def create_pixella_graphs():
+    cont = True
+    while cont:
 
-    graphs = get_pixella_graphs()
-    toggl_projects = get_toggl_projects()
-    print(f'You have the following graphs in Pixella: {", ".join(graphs.keys())}')
-    print(f'You have the following projects in Toggl: {", ".join(toggl_projects.values())}')
-    pixella_graph_name = user_input_cs(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_NAME'])
-    pixella_graph_id = pixella_graph_name.lower()
-    pixella_graph_color = get_japanese_color(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_COLOR'])
-    pixella_graph_timezone = 'America/Montreal'
+        graphs = get_pixella_graphs()
+        toggl_projects = get_toggl_projects()
+        print(f'You have the following graphs in Pixella: {", ".join(graphs.keys())}')
+        print(f'You have the following projects in Toggl: {", ".join(toggl_projects.values())}')
+        pixella_graph_name = user_input_cs(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_NAME'])
+        pixella_graph_id = pixella_graph_name.lower()
+        pixella_graph_color = get_japanese_color(TEXT_DICT['PROMPTS']['PIXELLA_GRAPH_COLOR'])
+        pixella_graph_timezone = 'America/Montreal'
 
-    response = create_new_graph(pixella_graph_id, pixella_graph_name, color=pixella_graph_color)
+        response = create_new_graph(pixella_graph_id, pixella_graph_name, color=pixella_graph_color)
 
-    print(f'Graph with name {pixella_graph_name} has been successfully created.')
+        print(f'Graph with name {pixella_graph_name} has been successfully created.')
+
+        user_input = ''
+        while user_input not in YES_AND_NO:
+            user_input = input_modified('Would you like to create another graph?\nEnter yes or no:   ')
+            if user_input in YES:
+                pass
+            elif user_input in NO: 
+                cont = False
+            else:
+                print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
+
 
     start_app()
 
