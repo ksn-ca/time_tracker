@@ -1,4 +1,6 @@
 __pycache__
 .DS_Store
 /project/csv/Toggl_time_entries_2023-01-01_to_2023-12-31.csv
+/project/csv/Toggl_time_entries_2024-01-01_to_2024-12-31.csv
 .env
+log.txt
