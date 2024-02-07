@@ -23,7 +23,8 @@ TEXT_DICT = {
         'PIXELLA_NO_GRAPHS':
         'You have no graphs.',
         'PIXELLA_USER_INCORRECT':
-        'This user or token are incorrent. Please try again.'
+        'This user or token are incorrent. Please try again.',
+        'APP_ERROR': 'Sorry, there was an error in running this application.\nPlease try again or contact the developer to help you resolve this issue.'
     },
     'PROMPTS': {
         'PIXELLA_USERNAME':

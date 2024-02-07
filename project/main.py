@@ -7,6 +7,9 @@ import sys
 import re
 from text_dict import TEXT_DICT
 import numpy as np
+import logging
+
+logging.basicConfig(filename='log.txt' )
 
 # OTHER
 TODAY = datetime.now().date()
@@ -374,62 +377,64 @@ def delete_user_prompt():
 
 
 def start_app():
-    if not os.path.isfile(ENV_FILE):
-        user_input = input(TEXT_DICT['OTHER']['NO_ENV_FILE']).strip().lower()
-        if user_input in YES:
-            toggl_token, toggl_workspace_id, toggl_success = get_toogl_info()
+    try:
+        if not os.path.isfile(ENV_FILE):
+            user_input = input(TEXT_DICT['OTHER']['NO_ENV_FILE']).strip().lower()
+            if user_input in YES:
+                toggl_token, toggl_workspace_id, toggl_success = get_toogl_info()
 
-            if toggl_success:
-                pixella_token, pixella_username, pixella_success = get_pixella_info()
-                if pixella_success:
-                    text = create_env_text(
-                        toggl_token, toggl_workspace_id, pixella_token, pixella_username)
-                    file_success = create_env_file(text)
+                if toggl_success:
+                    pixella_token, pixella_username, pixella_success = get_pixella_info()
+                    if pixella_success:
+                        text = create_env_text(
+                            toggl_token, toggl_workspace_id, pixella_token, pixella_username)
+                        file_success = create_env_file(text)
 
-                    if file_success:
-                        print(TEXT_DICT['NOTIFICATIONS']['FILE_CREATED'])
-                        start_app()
+                        if file_success:
+                            print(TEXT_DICT['NOTIFICATIONS']['FILE_CREATED'])
+                            start_app()
+                    else:
+                        restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INFO_NOT_PROVIDED'])
                 else:
-                    restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_INFO_NOT_PROVIDED'])
+                    restart_prompt(TEXT_DICT['ERROR_MESSAGES']['TOGGL_INFO_NOT_PROVIDED'])
+                    # user declines to provide information
             else:
-                restart_prompt(TEXT_DICT['ERROR_MESSAGES']['TOGGL_INFO_NOT_PROVIDED'])
-                # user declines to provide information
+                restart_prompt(TEXT_DICT['ERROR_MESSAGES']['GENERAL_INFO_NOT_PROVIDED'])
+
+        # FILE EXISTS
         else:
-            restart_prompt(TEXT_DICT['ERROR_MESSAGES']['GENERAL_INFO_NOT_PROVIDED'])
+            no_graphs = len(get_pixella_graphs()) == 0
 
-    # FILE EXISTS
-    else:
-        no_graphs = len(get_pixella_graphs()) == 0
+            if no_graphs:
+                user_input = ''
+                while user_input not in YES_AND_NO:
+                    user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_CREATE_GRAPH'])
+                    if user_input in YES:
+                        create_pixella_graphs()
+                    elif user_input in NO:
+                        restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_NO_WANT_GRAPH'])
+                    else:
+                        print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
 
-        if no_graphs:
+
             user_input = ''
-            while user_input not in YES_AND_NO:
-                user_input = input_modified(TEXT_DICT['PROMPTS']['PIXELLA_CREATE_GRAPH'])
-                if user_input in YES:
+            while user_input not in str_range(1,6):
+                user_input = input_modified(TEXT_DICT['PROMPTS']['MAIN_APP'])
+                if user_input == '1':
+                    sync_accounts()
+                elif user_input == '2':
                     create_pixella_graphs()
-                elif user_input in NO:
-                    restart_prompt(TEXT_DICT['ERROR_MESSAGES']['PIXELLA_NO_WANT_GRAPH'])
+                elif user_input == '3':
+                    delete_pixella_graph()
+                elif user_input == '4':
+                    delete_user_prompt()
+                elif user_input == '5':
+                    sys.exit(TEXT_DICT['OTHER']['CLOSING_APP'])
                 else:
                     print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
-
-
-        user_input = ''
-        while user_input not in str_range(1,6):
-            user_input = input_modified(TEXT_DICT['PROMPTS']['MAIN_APP'])
-            if user_input == '1':
-                sync_accounts()
-            elif user_input == '2':
-                create_pixella_graphs()
-            elif user_input == '3':
-                delete_pixella_graph()
-            elif user_input == '4':
-                delete_user_prompt()
-            elif user_input == '5':
-                sys.exit(TEXT_DICT['OTHER']['CLOSING_APP'])
-            else:
-                print(TEXT_DICT['NOTIFICATIONS']['INPUT_NOT_SUPPORTED'])
-        
-
+    except Exception as e:
+        print(TEXT_DICT['ERROR_MESSAGES']['APP_ERROR'])
+        logging.exception('')
 #clear()
 print(TEXT_DICT['OTHER']['WELCOME'])
 
